@@ -17,27 +17,28 @@ type Config struct {
 }
 
 func NewConfig() Config {
-	err := godotenv.Load(".env", ".env.example")
+	err := godotenv.Load("database/postgres/.env")
+
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	host := os.Getenv("HOST")
+	host := os.Getenv("PG_HOST")
 	if host == "" {
 		log.Fatal("can`t find a Database host")
 	}
 
-	port, err := strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("PG_PORT"))
 	if err != nil {
 		log.Fatalf("want int, got err: %v", err)
 	}
 
-	user := os.Getenv("USER")
+	user := os.Getenv("PG_USER")
 	if user == "" {
 		log.Fatal("can`t find a Database user")
 	}
 
-	password := os.Getenv("PASSWORD")
+	password := os.Getenv("PG_PASSWORD")
 	if password == "" {
 		log.Fatal("can`t find a Database password")
 	}
