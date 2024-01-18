@@ -9,13 +9,8 @@ import (
 func main() {
 	router := gin.Default()
 
-	// Db, err := postgres.NewPostgres()
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	router.POST("/create_user", api.CreateUser)
+	router.POST("/update_user", api.UpdateUser)
 
 	router.Run()
 }

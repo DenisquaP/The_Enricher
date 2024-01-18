@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS "users" (
     surname VARCHAR(56) NOT NULL,
     patronymic VARCHAR(56) NOT NULL,
     age INT NOT NULL,
-    gender VARCHAR(56) NOT NULL
+    gender VARCHAR(56) NOT NULL,
+    nationality VARCHAR(56) NOT NULL
 );

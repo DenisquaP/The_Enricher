@@ -4,6 +4,8 @@ import (
 	"enricher/database/models"
 	"enricher/database/postgres"
 	"enricher/internal/entity"
+	"enricher/internal/services"
+
 	"log"
 	"net/http"
 
@@ -11,7 +13,7 @@ import (
 )
 
 func CreateUser(ctx *gin.Context) {
-	var request entity.Request
+	var request entity.CreateRequest
 	var response models.User
 
 	pg, err := postgres.NewPostgres()
@@ -32,8 +34,27 @@ func CreateUser(ctx *gin.Context) {
 	response.Name = request.Name
 	response.Surname = request.Surname
 	response.Patronymic = request.Patronymic
-	response.Age = 21
-	response.Gender = "male"
+
+	age, err := services.Age(request.Name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response.Age = age
+
+	gender, err := services.Gender(request.Name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response.Gender = gender
+
+	nationality, err := services.Nationality(request.Name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response.Nationality = nationality
 
 	err = pg.InsertUser(response)
 	if err != nil {
@@ -42,5 +63,30 @@ func CreateUser(ctx *gin.Context) {
 	} else {
 		ctx.IndentedJSON(http.StatusOK, response)
 	}
+}
 
+func UpdateUser(ctx *gin.Context) {
+	var request entity.UpdateRequest
+
+	pg, err := postgres.NewPostgres()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = pg.Connection()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pg.Close()
+
+	if err := ctx.BindJSON(&request); err != nil {
+		log.Fatal(err)
+	}
+
+	err = pg.UpdateUser(request.FieldToUpdate, request.NewValue, request.UserId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx.IndentedJSON(http.StatusOK, map[string]string{"message": "ok"})
 }

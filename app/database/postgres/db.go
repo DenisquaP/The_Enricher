@@ -5,6 +5,7 @@ import (
 	"enricher/database/models"
 	"fmt"
 
+	"github.com/golang-migrate/migrate"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -45,42 +46,61 @@ func (p *PostgresDB) Connection() error {
 }
 
 func (p PostgresDB) InsertUser(user models.User) error {
-	// line := fmt.Sprintf("INSERT INTO users (name, surname, patronymic, age, gender) values (%s, %s, %s, %d, %s)", user.Name, user.Surname, user.Patronymic, user.Age, user.Gender)
-	query := `INSERT INTO users (name, surname, patronymic, age, gender) VALUES (@name, @surname, @patronymic, @age, @gender)`
+	query := `INSERT INTO users (name, surname, patronymic, age, gender, nationality) VALUES (@name, @surname, @patronymic, @age, @gender, @nationality)`
 	args := pgx.NamedArgs{
-		"name":       user.Name,
-		"surname":    user.Surname,
-		"patronymic": user.Patronymic,
-		"age":        user.Age,
-		"gender":     user.Gender,
+		"name":        user.Name,
+		"surname":     user.Surname,
+		"patronymic":  user.Patronymic,
+		"age":         user.Age,
+		"gender":      user.Gender,
+		"nationality": user.Nationality,
 	}
 
 	_, err := p.client.Exec(p.ctx, query, args)
 	if err != nil {
 		return fmt.Errorf("unable to insert row: %v", err)
 	}
-	// tr, err := p.client.Begin(p.ctx)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer tr.Rollback(p.ctx)
-
-	// if err := tr.QueryRow(p.ctx, line); err != nil {
-	// 	return errors.New(fmt.Sprint(err))
-	// }
-
-	// err = tr.Commit(p.ctx)
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
+}
 
+func (p PostgresDB) UpdateUser(row, cell string, user_id int) error {
+	query := `UPDATE users SET @field = @cell WHERE user_id = @user_id` // Где-то тут ошибка
+	args := pgx.NamedArgs{
+		"field":   row,
+		"cell":    cell,
+		"user_id": user_id,
+	}
+
+	_, err := p.client.Exec(p.ctx, query, args)
+	if err != nil {
+		return fmt.Errorf("unable to change value: %v", err)
+	}
+
+	return nil
 }
 
 func (p PostgresDB) Close() error {
 	err := p.client.Close(p.ctx)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p PostgresDB) migrationsUp(url ...string) error {
+	var sourceURL string
+	if url == nil {
+		sourceURL = "file://database/migrations/up"
+	} else {
+		sourceURL = url[0]
+	}
+	m, err := migrate.New(sourceURL, p.url)
+	if err != nil {
+		return err
+	}
+	if err = m.Up(); err != nil {
 		return err
 	}
 

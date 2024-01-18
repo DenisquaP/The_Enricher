@@ -1,13 +1,13 @@
 package entity
 
-type Request struct {
+type CreateRequest struct {
 	Name       string `json:"name"`
 	Surname    string `json:"surname"`
 	Patronymic string `json:"patronymic"`
 }
 
-type Response struct {
-	Request
-	Age    int    `json:"age"`
-	Gender string `json:"gender"`
+type UpdateRequest struct {
+	UserId        int    `json:"user_id"`
+	FieldToUpdate string `json:"field_to_update"`
+	NewValue      string `json:"new_value"`
 }
