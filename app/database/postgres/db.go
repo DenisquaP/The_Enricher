@@ -64,15 +64,10 @@ func (p PostgresDB) InsertUser(user models.User) error {
 	return nil
 }
 
-func (p PostgresDB) UpdateUser(row, cell string, user_id int) error {
-	query := `UPDATE users SET @field = @cell WHERE user_id = @user_id` // Где-то тут ошибка
-	args := pgx.NamedArgs{
-		"field":   row,
-		"cell":    cell,
-		"user_id": user_id,
-	}
+func (p PostgresDB) UpdateUser(row, newValue string, user_id int) error {
+	query := fmt.Sprintf("UPDATE users SET %v = '%v' WHERE user_id = %v", row, newValue, user_id)
 
-	_, err := p.client.Exec(p.ctx, query, args)
+	_, err := p.client.Exec(p.ctx, query)
 	if err != nil {
 		return fmt.Errorf("unable to change value: %v", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"enricher/database/postgres"
 	"enricher/internal/entity"
 	"enricher/internal/services"
+	"fmt"
 
 	"log"
 	"net/http"
@@ -85,8 +86,9 @@ func UpdateUser(ctx *gin.Context) {
 
 	err = pg.UpdateUser(request.FieldToUpdate, request.NewValue, request.UserId)
 	if err != nil {
-		log.Fatal(err)
+		ctx.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprint(err)})
+	} else {
+		ctx.JSON(http.StatusOK, map[string]string{"message": "ok"})
 	}
 
-	ctx.IndentedJSON(http.StatusOK, map[string]string{"message": "ok"})
 }
