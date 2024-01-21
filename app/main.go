@@ -3,13 +3,18 @@ package main
 import (
 	"enricher/database/postgres"
 	"enricher/internal/api"
+	"io"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	router := gin.Default()
+
+	f, _ := os.Create("gin.log")
+	gin.DefaultWriter = io.MultiWriter(f)
 
 	pg, err := postgres.NewPostgres()
 	if err != nil {

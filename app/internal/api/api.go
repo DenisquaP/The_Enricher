@@ -154,6 +154,8 @@ func GetUsers(ctx *gin.Context) {
 }
 
 func GetUsersFilter(ctx *gin.Context) {
+	EmptyFilterError := errors.New("got empry filter")
+
 	pg, err := postgres.NewPostgres()
 	if err != nil {
 		log.Fatal(err)
@@ -165,27 +167,17 @@ func GetUsersFilter(ctx *gin.Context) {
 	}
 	defer pg.Close()
 
-	filterTag := ctx.Query("filter_tag")
-	if filterTag == "" {
-		err := errors.New("got empry filter")
-		fmt.Println(err)
-		ctx.IndentedJSON(http.StatusBadRequest, entity.ResponseErr{Err: err})
+	filters := ctx.Request.URL.Query()
+	if len(filters) == 0 {
+		ctx.IndentedJSON(http.StatusBadRequest, entity.ResponseErr{Err: EmptyFilterError})
 		return
 	}
 
-	filter := ctx.Query("filter")
-	if filter == "" {
-		err := errors.New("got empry filter")
-		ctx.IndentedJSON(http.StatusBadRequest, entity.ResponseErr{Err: err})
-		return
-	}
-
-	res, err := pg.GetUsersByFilter(filterTag, filter)
+	res, err := pg.GetUsersByFilter(filters)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, entity.ResponseErr{Err: err})
 		return
 	}
 
 	ctx.IndentedJSON(http.StatusOK, res)
-
 }

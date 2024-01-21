@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -109,11 +110,27 @@ func (p PostgresDB) GetUsers() ([]Row, error) {
 	return rowSlice, nil
 }
 
-func (p PostgresDB) GetUsersByFilter(filterTag, filter string) ([]Row, error) {
-	query := fmt.Sprintf("SELECT * FROM users WHERE %v = %v", filterTag, filter)
+func (p PostgresDB) GetUsersByFilter(filter map[string][]string) ([]Row, error) {
+	filters := ""
+
+	for k, v := range filter {
+		switch k {
+		case "name", "surname", "patronimic", "gender", "nationality":
+			v[0] = fmt.Sprintf("'%v'", v[0])
+		}
+
+		if len(filters) == 0 {
+			filters += strings.ToLower(k) + " = " + v[0]
+		} else {
+			filters += " AND " + strings.ToLower(k) + " = " + v[0]
+		}
+	}
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE %v", filters)
 
 	res, err := p.client.Query(p.ctx, query)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -125,6 +142,8 @@ func (p PostgresDB) GetUsersByFilter(filterTag, filter string) ([]Row, error) {
 		}
 		rowSlice = append(rowSlice, r)
 	}
+
+	fmt.Println(rowSlice)
 
 	return rowSlice, nil
 }
