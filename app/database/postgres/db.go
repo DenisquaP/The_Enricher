@@ -4,18 +4,21 @@ import (
 	"context"
 	"enricher/database/models"
 	"fmt"
+	"log"
+	"os"
 
-	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5"
 )
 
-type Postgres interface {
-	Connection()
-	InsertUser() error
-	SelectUser(email string) error
-	MigrationsUp(url ...string) error
-	Close() error
+type Row struct {
+	UserID int
+	models.User
 }
+
+var rowSlice []Row
 
 type PostgresDB struct {
 	Config
@@ -75,6 +78,57 @@ func (p PostgresDB) UpdateUser(row, newValue string, user_id int) error {
 	return nil
 }
 
+func (p PostgresDB) DeleteUser(user_id int) error {
+	query := fmt.Sprintf("DELETE FROM users WHERE user_id = %v", user_id)
+
+	_, err := p.client.Exec(p.ctx, query)
+	if err != nil {
+		return fmt.Errorf("unable to delete an entry: %v", err)
+	}
+
+	return nil
+}
+
+func (p PostgresDB) GetUsers() ([]Row, error) {
+	query := "SELECT * FROM users"
+
+	res, err := p.client.Query(p.ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for res.Next() {
+		var r Row
+		err := res.Scan(&r.UserID, &r.Name, &r.Surname, &r.Patronymic, &r.Age, &r.Gender, &r.Nationality)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rowSlice = append(rowSlice, r)
+	}
+
+	return rowSlice, nil
+}
+
+func (p PostgresDB) GetUsersByFilter(filterTag, filter string) ([]Row, error) {
+	query := fmt.Sprintf("SELECT * FROM users WHERE %v = %v", filterTag, filter)
+
+	res, err := p.client.Query(p.ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for res.Next() {
+		var r Row
+		err := res.Scan(&r.UserID, &r.Name, &r.Surname, &r.Patronymic, &r.Age, &r.Gender, &r.Nationality)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rowSlice = append(rowSlice, r)
+	}
+
+	return rowSlice, nil
+}
+
 func (p PostgresDB) Close() error {
 	err := p.client.Close(p.ctx)
 	if err != nil {
@@ -84,10 +138,11 @@ func (p PostgresDB) Close() error {
 	return nil
 }
 
-func (p PostgresDB) migrationsUp(url ...string) error {
+func (p *PostgresDB) MigrationsUp(url ...string) error {
 	var sourceURL string
 	if url == nil {
-		sourceURL = "file://database/migrations/up"
+		sourceURL = "file://database/migrations"
+		fmt.Println(os.ReadDir("database/migrations"))
 	} else {
 		sourceURL = url[0]
 	}
