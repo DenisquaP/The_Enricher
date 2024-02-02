@@ -35,7 +35,15 @@ func CreateUser(ctx *gin.Context) {
 	}
 
 	response.Name = request.Name
+	if response.Name == "" {
+		ctx.JSON(http.StatusBadRequest, "can`t find name")
+		return
+	}
 	response.Surname = request.Surname
+	if response.Surname == "" {
+		ctx.JSON(http.StatusBadRequest, "can`t find surname")
+		return
+	}
 	response.Patronymic = request.Patronymic
 
 	age, err := services.Age(request.Name)

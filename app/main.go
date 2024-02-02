@@ -27,8 +27,8 @@ func main() {
 	}
 
 	router.POST("/create_user", api.CreateUser)
-	router.POST("/update_user", api.UpdateUser)
-	router.POST("/delete_user", api.DeleteUser)
+	router.PUT("/update_user", api.UpdateUser)
+	router.DELETE("/delete_user", api.DeleteUser)
 
 	router.GET("/get_users", api.GetUsers)
 	router.GET("/get_users_by_filter", api.GetUsersFilter)

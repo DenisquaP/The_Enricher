@@ -5,7 +5,6 @@ import (
 	"enricher/database/models"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -18,8 +17,6 @@ type Row struct {
 	UserID int
 	models.User
 }
-
-var rowSlice []Row
 
 type PostgresDB struct {
 	Config
@@ -80,6 +77,7 @@ func (p PostgresDB) UpdateUser(row, newValue string, user_id int) error {
 }
 
 func (p PostgresDB) DeleteUser(user_id int) error {
+
 	query := fmt.Sprintf("DELETE FROM users WHERE user_id = %v", user_id)
 
 	_, err := p.client.Exec(p.ctx, query)
@@ -90,6 +88,25 @@ func (p PostgresDB) DeleteUser(user_id int) error {
 	return nil
 }
 
+// func (p PostgresDB) GetUserById(ctx, context.Context, user_id int) (r Row, err error) {
+// 	query := fmt.Sprintf("SELECT * FROM users where user_id = %d", user_id)
+
+// 	res, err := p.client.Query(ctx, query)
+// 	if err != nil {
+// 		return r, err
+// 	}
+
+// 	if res.Next() {
+// 		err = res.Scan(&r.UserID, &r.Name, &r.Surname, &r.Patronymic, &r.Age, &r.Gender, &r.Nationality)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 	}
+
+// 	return
+
+// }
+
 func (p PostgresDB) GetUsers() ([]Row, error) {
 	query := "SELECT * FROM users"
 
@@ -98,8 +115,9 @@ func (p PostgresDB) GetUsers() ([]Row, error) {
 		return nil, err
 	}
 
+	var r Row
+	var rowSlice []Row
 	for res.Next() {
-		var r Row
 		err := res.Scan(&r.UserID, &r.Name, &r.Surname, &r.Patronymic, &r.Age, &r.Gender, &r.Nationality)
 		if err != nil {
 			log.Fatal(err)
@@ -130,20 +148,18 @@ func (p PostgresDB) GetUsersByFilter(filter map[string][]string) ([]Row, error) 
 
 	res, err := p.client.Query(p.ctx, query)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
+	var r Row
+	var rowSlice []Row
 	for res.Next() {
-		var r Row
 		err := res.Scan(&r.UserID, &r.Name, &r.Surname, &r.Patronymic, &r.Age, &r.Gender, &r.Nationality)
 		if err != nil {
 			log.Fatal(err)
 		}
 		rowSlice = append(rowSlice, r)
 	}
-
-	fmt.Println(rowSlice)
 
 	return rowSlice, nil
 }
@@ -161,7 +177,6 @@ func (p *PostgresDB) MigrationsUp(url ...string) error {
 	var sourceURL string
 	if url == nil {
 		sourceURL = "file://database/migrations"
-		fmt.Println(os.ReadDir("database/migrations"))
 	} else {
 		sourceURL = url[0]
 	}
