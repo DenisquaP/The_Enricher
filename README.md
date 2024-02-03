@@ -19,8 +19,8 @@ ___
 |Method| URL |Discription| Body / Query params| Result|
 |------|-----|--------|-------|------|
 |**POST**| localhost:8080/create_user | Creates an entry in DB| name: string <br> surname: string <br> patronymic: string|  JSON {<br>name: string <br> surname: string <br> patronymic: string <br> age: int <br> gender: string <br> nationality: string<br>}|
-|**POST**| localhost:8080/update_user | Updates an entry in DB by user_id and field name| user_id: int <br> field_to_update: string <br> new_value: string|  JSON {<br> message: string<br>}|
-|**POST**| localhost:8080/delete_user | Deletes an entry in DB by user_id| user_id: int |  JSON {<br> message: string<br>}|
+|**PUT**| localhost:8080/update_user | Updates an entry in DB by user_id and field name| user_id: int <br> field_to_update: string <br> new_value: string|  JSON {<br> message: string<br>}|
+|**DELETE**| localhost:8080/delete_user | Deletes an entry in DB by user_id| user_id: int |  JSON {<br> message: string<br>}|
 |**GET**| localhost:8080/get_users | Returns every entry in DB| _ |  JSON { <br>{<br>"UserID": int,<br>"Name": string,<br>"Surname": string,<br>"Patronymic": string,<br>"Age": int,<br>"Gender": string,<br>"Nationality": string<br>}<br>}|
 |**GET**| localhost:8080/get_users_by_filter | Returns every entry in DB by filter| Query: <br> any_filter: any_value (Example: name: Denis)|  JSON { <br>{<br>"UserID": int,<br>"Name": string,<br>"Surname": string,<br>"Patronymic": string,<br>"Age": int,<br>"Gender": string,<br>"Nationality": string<br>}<br>}|
 ___
